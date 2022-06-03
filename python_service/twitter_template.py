@@ -3,6 +3,9 @@
 import requests
 import os
 import json
+import base64
+from kafka import KafkaProducer
+producer = KafkaProducer(bootstrap_servers='broker:29092')
 
 # To set your enviornment variables in your terminal run the following line:
 # export 'BEARER_TOKEN'='<your_bearer_token>'
@@ -84,7 +87,14 @@ def get_stream(set):
     for response_line in response.iter_lines():
         if response_line:
             json_response = json.loads(response_line)
+
+            producer.send("twitterdata",value = str.encode(str(json_response)))
             print(json.dumps(json_response, indent=4, sort_keys=True))
+            
+
+### kafka stuff 
+
+
 
 
 def main():

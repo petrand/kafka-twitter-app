@@ -4,18 +4,19 @@ services:
     tty: true
     container_name: work_env
     build: 
-      context: ./python_service
-      dockerfile: ./python_service
+      context: ./
+      dockerfile: ./python_service/Dockerfile
     volumes:
       - ./:/usr/work_env/
-    
+    env_file:
+      - ./python_service/service.env
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.0.1
     container_name: zookeeper
-    build: 
-      context: ./zookeeper
-      dockerfile: ./zookeeper
+    #build: 
+    #  context: ./
+    #  dockerfile: ./zookeeper/Dockerfile
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000

@@ -5,6 +5,7 @@ import plotly.express as px  # interactive charts
 import streamlit as st 
 import sys 
 import os 
+import random
 
 sys.path.insert(1, './../../')
 
@@ -35,6 +36,8 @@ kafka_consumer.bootstrap_connected()
 placeholder = st.empty()
 
 
+sentiment_arr = [0 for i in range(0,100)]
+
 end_time = time.time()
 
 counter = 1
@@ -48,7 +51,7 @@ runn_avg_tweets_ps_old = 0
 
 for message in kafka_consumer:
 
-
+    sentiment_arr[counter%100] = random.random()
     #message.topic, message.value
     start_time = time.time()
     contents = utils.decode_message(message.value)
@@ -57,6 +60,7 @@ for message in kafka_consumer:
     created_at = contents['data']['created_at']
     freshness = utils.compute_freshness(created_at)
     delay = (start_time-end_time)
+    sentiment = random.random()
 
     cumm_sentiment += 0
     cumm_freshness += freshness
@@ -97,7 +101,13 @@ for message in kafka_consumer:
             value=round(runn_avg_freshness, 1),
             delta=delta_freshness,
         )
+
+        st.markdown("### Second Chart")
+        fig2 = px.line(data_frame=pd.DataFrame([sentiment_arr, [i for i in range(0,100)]], columns=['Sentiment', 'Index']), x="index", y="Sentiment")
+        st.write(fig2)
+
         st.write(contents)
+
 
     runn_avg_sentiment_old = runn_avg_sentiment
     runn_avg_freshness_old = runn_avg_freshness

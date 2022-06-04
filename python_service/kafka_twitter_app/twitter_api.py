@@ -4,8 +4,7 @@ import requests
 import os
 import json
 import base64
-from kafka import KafkaProducer
-producer = KafkaProducer(bootstrap_servers='broker:29092')
+
 
 # To set your enviornment variables in your terminal run the following line:
 # export 'BEARER_TOKEN'='<your_bearer_token>'
@@ -54,13 +53,9 @@ def delete_all_rules(rules):
     print(json.dumps(response.json()))
 
 
-def set_rules(delete):
+def set_rules(delete, rules):
     # You can adjust the rules if needed
-    sample_rules = [
-        {"value": "dog has:images", "tag": "dog pictures"},
-        {"value": "cat has:images -grumpy", "tag": "cat pictures"},
-    ]
-    payload = {"add": sample_rules}
+    payload = {"add": rules}
     response = requests.post(
         "https://api.twitter.com/2/tweets/search/stream/rules",
         auth=bearer_oauth,
@@ -73,7 +68,7 @@ def set_rules(delete):
     print(json.dumps(response.json()))
 
 
-def get_stream(set):
+def get_stream(set, topic, kafka_producer):
     response = requests.get(
         "https://api.twitter.com/2/tweets/search/stream", auth=bearer_oauth, stream=True,
     )
@@ -97,12 +92,11 @@ def get_stream(set):
 
 
 
-def main():
-    rules = get_rules()
-    delete = delete_all_rules(rules)
-    set = set_rules(delete)
-    get_stream(set)
+#def main():
+#    rules = get_rules()
+#    delete = delete_all_rules(rules)
+#    set = set_rules(delete)
+#    get_stream(set)
 
-
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()

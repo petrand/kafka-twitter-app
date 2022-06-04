@@ -40,8 +40,9 @@ def get_kafka_consumer(bootstrap_servers=['broker:29092'], topics=['twitterdata'
     consumer.subscribe(topics=topics)
 
     # check if correctly subsribed to all topics
-    if consumer.topics() != topics:
-        raise Exception(f"Failed to subscribe to all topics, check permissions. Currently subscribe topics are {consumer.topics()}")
+    #print(consumer.topics(), topics)
+    #if consumer.topics() != topics:
+    #    raise Exception(f"Failed to subscribe to all topics, check permissions. Currently subscribe topics are {consumer.topics()}")
     
     # return kafka consumer 
     return consumer

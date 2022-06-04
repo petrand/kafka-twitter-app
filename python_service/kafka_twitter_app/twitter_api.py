@@ -4,7 +4,7 @@ import requests
 import os
 import json
 import base64
-
+import time
 
 # To set your enviornment variables in your terminal run the following line:
 # export 'BEARER_TOKEN'='<your_bearer_token>'
@@ -83,9 +83,9 @@ def get_stream(set, topic, kafka_producer):
         if response_line:
             json_response = json.loads(response_line)
 
-            producer.send("twitterdata",value = str.encode(str(json_response)))
+            kafka_producer.send("twitterdata",value = str.encode(str(json_response)))
             print(json.dumps(json_response, indent=4, sort_keys=True))
-            
+            time.sleep(5)
 
 ### kafka stuff 
 
@@ -100,3 +100,5 @@ def get_stream(set, topic, kafka_producer):
 
 #if __name__ == "__main__":
 #    main()
+
+#streamlit run app.py --server.port 8051

@@ -1,6 +1,10 @@
+import os 
+import sys
+
+sys.path.insert(1, './../../')
+
 import python_service.kafka_twitter_app.twitter_api as twitter_api
 import python_service.kafka_twitter_app.kafka_api as kafka_api
-import os 
 
 
 
@@ -36,10 +40,13 @@ class KafkaTwitterApp:
         twitter_api.get_stream(stream_set_rules, topic_name, producer)
 
 
+#for message in consumer:
+#    print(message.topic, message.value)
 
+if __name__ == "__main__":
+    kfapp = KafkaTwitterApp()
+    twitter_tag = 'cat'
+    rules = [{"value": twitter_tag, "tag": twitter_tag}]
+    topic_name = os.environ.get("TOPIC_NAME")
 
-
-
-
-for message in consumer:
-    print(message.topic, message.value)
+    kfapp.start_stream(rules, topic_name)   

@@ -6,6 +6,10 @@ services:
     build: 
       context: ./
       dockerfile: ./python_service/Dockerfile
+    depends_on:
+      - broker
+    ports:
+      - "8051:8051"
     volumes:
       - ./:/usr/work_env/
     env_file:

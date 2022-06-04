@@ -6,6 +6,8 @@ import streamlit as st
 import sys 
 import os 
 import random
+from collections import deque 
+
 
 sys.path.insert(1, './../../')
 
@@ -35,8 +37,10 @@ kafka_consumer.bootstrap_connected()
 # creating a single-element container
 placeholder = st.empty()
 
+q_length = 100
+sentiment_df = pd.DataFrame([[0,i] for i in range(0,q_length)], columns=['Sentiment', 'Index'])
+sentiment_q = deque()
 
-sentiment_arr = [0 for i in range(0,100)]
 
 end_time = time.time()
 
@@ -50,8 +54,10 @@ runn_avg_freshness_old = 0
 runn_avg_tweets_ps_old = 0
 
 for message in kafka_consumer:
-
-    sentiment_arr[counter%100] = random.random()
+    sentiment_q.append(random.random())
+    sentiment_df = pd.DataFrame(dict(sentiment=sentiment_q,index=[i for i in range(len(sentiment_q))]))
+    #sentiment_df.iloc[0,counter%100] = random.random()
+    #sentiment_arr[counter%100] = random.random()
     #message.topic, message.value
     start_time = time.time()
     contents = utils.decode_message(message.value)
@@ -102,17 +108,21 @@ for message in kafka_consumer:
             delta=delta_freshness,
         )
 
-        st.markdown("### Second Chart")
-        fig2 = px.line(data_frame=pd.DataFrame([sentiment_arr, [i for i in range(0,100)]], columns=['Sentiment', 'Index']), x="index", y="Sentiment")
+        st.markdown("### Sentiment Change")
+        fig2 = px.line(data_frame=sentiment_df, x="index", y="sentiment")
         st.write(fig2)
+        st.markdown("Tweet contents")
+        st.write(contents['data']['text'])
 
-        st.write(contents)
 
 
     runn_avg_sentiment_old = runn_avg_sentiment
     runn_avg_freshness_old = runn_avg_freshness
     runn_avg_tweets_ps_old = runn_avg_tweets_ps
     counter += 1
+
+    if counter >= q_length:
+        sentiment_q.popleft()
 
     end_time = time.time()
 

@@ -70,7 +70,7 @@ def set_rules(delete, rules):
 
 def get_stream(set, topic, kafka_producer):
     response = requests.get(
-        "https://api.twitter.com/2/tweets/search/stream", auth=bearer_oauth, stream=True,
+        "https://api.twitter.com/2/tweets/search/stream?tweet.fields=created_at", auth=bearer_oauth, stream=True,
     )
     print(response.status_code)
     if response.status_code != 200:
@@ -82,10 +82,10 @@ def get_stream(set, topic, kafka_producer):
     for response_line in response.iter_lines():
         if response_line:
             json_response = json.loads(response_line)
-
-            kafka_producer.send("twitterdata",value = str.encode(str(json_response)))
+            print(json_response.keys())
+            kafka_producer.send("twitterdata",value = response_line)
             print(json.dumps(json_response, indent=4, sort_keys=True))
-            time.sleep(5)
+            #time.sleep(5)
 
 ### kafka stuff 
 

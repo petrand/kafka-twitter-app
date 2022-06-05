@@ -37,7 +37,7 @@ class FinBERT():
                 model  = self.model.to(device)
 
                 logits = model(all_input_ids, all_attention_mask, all_token_type_ids)[0]
-                logging.info(logits)
+                #logging.info(logits)
                 logits = softmax(np.array(logits.cpu()))
                 sentiment_score = pd.Series(logits[:, 0] - logits[:, 1])
                 predictions = np.squeeze(np.argmax(logits, axis=1))
@@ -51,4 +51,5 @@ class FinBERT():
                 result = pd.concat([result, batch_result], ignore_index=True)
 
         result['prediction'] = result.prediction.apply(lambda x: label_dict[x])
+        
         return result

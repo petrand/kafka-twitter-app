@@ -6,7 +6,10 @@ import streamlit as st
 import sys 
 import os 
 import random
-from collections import deque 
+import requests 
+from collections import deque
+
+from yaml import KeyToken 
 
 
 sys.path.insert(1, './../../')
@@ -14,6 +17,7 @@ sys.path.insert(1, './../../')
 from python_service.kafka_twitter_app.kafka_twitter_app import KafkaTwitterApp
 import python_service.streamlit_app.utils as utils
 from python_service.nlp_service.finbert import FinBERT
+from python_service.nlp_service.keybert_api import KeyBERTWrapper
 
 st.set_page_config(
     page_title="Life Twitter Tag Dashboard",
@@ -24,14 +28,16 @@ st.set_page_config(
 # dashboard title
 st.title("Life Twitter Tag Dashboard")
 
-# top-level filters
-#twitter_tag = st.selectbox("Select the Job", ['cat', 'dog', 'banana'])
-twitter_tag = "tesla"
-rules = [{"value": twitter_tag, "tag": twitter_tag}]
-topic_name = os.environ.get("TOPIC_NAME")
 
 finbert = FinBERT()
+keybert_wrapper = KeyBERTWrapper()
 kfapp = KafkaTwitterApp()
+
+hashtag = st.text_input("Hashtag to follow", "climate")
+
+if st.button('Start Listening'):
+    r = requests.post(url = os.environ["FLASK_API_ENDPOINT"], data = hashtag)
+    st.write(f'Listening successfully for {hashtag}')
 
 kafka_consumer = kfapp.create_consumer()
 kafka_consumer.bootstrap_connected()
@@ -39,9 +45,8 @@ kafka_consumer.bootstrap_connected()
 placeholder = st.empty()
 
 q_length = 100
-sentiment_df = pd.DataFrame([[0,i] for i in range(0,q_length)], columns=['Sentiment', 'Index'])
 sentiment_q = deque()
-
+keyword_q = deque()
 
 end_time = time.time()
 
@@ -59,12 +64,15 @@ for message in kafka_consumer:
     start_time = time.time()
     contents = utils.decode_message(message.value)
 
+    # keyword 
+    top_bigram, keyword_list = keybert_wrapper.predict(contents['data']['text'])
+    keyword_q.append(top_bigram)
     # sentiment 
     finbert_result = finbert.predict(contents['data']['text'])
     tweet_sentiment = np.mean(finbert_result.sentiment_score)
 
     sentiment_q.append(tweet_sentiment)
-    sentiment_df = pd.DataFrame(dict(sentiment=sentiment_q,index=[i for i in range(len(sentiment_q))]))
+    sentiment_df = pd.DataFrame(dict(sentiment=sentiment_q,keyword=keyword_q, index=[i for i in range(len(sentiment_q))]))
 
 
     # freshness
@@ -107,12 +115,26 @@ for message in kafka_consumer:
             value=round(runn_avg_freshness, 1),
             delta=delta_freshness,
         )
+        graph1, graph2 = st.columns(2)
+        with graph1:
+            st.markdown("### Sentiment Change")
+            fig2 = px.scatter(data_frame=sentiment_df, x="index", y="sentiment", trendline="lowess", trendline_options=dict(frac=0.5))
+            st.write(fig2)
+        with graph2:
+            st.markdown("### Keywords")
+            fig3 = px.treemap(sentiment_df,  path=["keyword"], values='sentiment',
+                    color='sentiment',
+                    color_continuous_scale='RdYlGn',
+                    color_continuous_midpoint=0)
+            st.write(fig3)
 
-        st.markdown("### Sentiment Change")
-        fig2 = px.line(data_frame=sentiment_df, x="index", y="sentiment")
-        st.write(fig2)
-        st.markdown("Tweet contents")
-        st.write(contents['data']['text'])
+        col1, col2 = st.columns(2)
+        with col1: 
+            st.markdown("Key Words")
+            st.write(keyword_list)
+        with col2:
+            st.markdown("Tweet contents")
+            st.write(contents['data']['text'])
 
 
 
@@ -122,6 +144,7 @@ for message in kafka_consumer:
     counter += 1
 
     if counter >= q_length:
+        keyword_q.popleft()
         sentiment_q.popleft()
 
     end_time = time.time()

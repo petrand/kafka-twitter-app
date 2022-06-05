@@ -1,5 +1,6 @@
 import os 
 import sys
+import json 
 
 sys.path.insert(1, './../../')
 
@@ -19,8 +20,8 @@ class KafkaTwitterApp:
         producer = kafka_api.get_kafka_producer(bootstrap_servers=self.bootstrap_servers)
         return producer
 
-    def create_consumer(self):
-        consumer = kafka_api.get_kafka_consumer(bootstrap_servers=self.bootstrap_servers, topics=self.topics)
+    def create_consumer(self, topics=[os.environ.get("TOPIC_NAME")]):
+        consumer = kafka_api.get_kafka_consumer(bootstrap_servers=self.bootstrap_servers, topics=topics)
         return consumer
 
     def create_stream(self, rules):
@@ -39,12 +40,23 @@ class KafkaTwitterApp:
         # create stream
         twitter_api.get_stream(stream_set_rules, topic_name, producer)
 
+def decode_message(msg):
+    msg_string =msg.decode('utf-8')
+
+    msg_json = json.loads(msg_string)
+    return msg_json
+
 
 #for message in consumer:
 #    print(message.topic, message.value)
 
 if __name__ == "__main__":
+
     kfapp = KafkaTwitterApp()
+    #hashtag_consumer = kfapp.create_consumer(topics="hashtag")
+
+    #for message in hashtag_consumer:
+
     twitter_tag = 'tesla'
     rules = [{"value": twitter_tag, "tag": twitter_tag}]
     topic_name = os.environ.get("TOPIC_NAME")

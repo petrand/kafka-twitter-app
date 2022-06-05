@@ -2,6 +2,7 @@
 
 import sys
 import nltk
+nltk.download('punkt')
 import pandas as pd
 from nltk.tokenize import sent_tokenize
 import numpy as np

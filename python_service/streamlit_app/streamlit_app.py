@@ -16,8 +16,8 @@ sys.path.insert(1, './../../')
 
 from python_service.kafka_twitter_app.kafka_twitter_app import KafkaTwitterApp
 import python_service.streamlit_app.utils as utils
-from python_service.nlp_service.finbert import FinBERT
-from python_service.nlp_service.keybert_api import KeyBERTWrapper
+#from python_service.nlp_service.finbert import FinBERT
+#from python_service.nlp_service.keybert_api import KeyBERTWrapper
 
 st.set_page_config(
     page_title="Life Twitter Tag Dashboard",
@@ -27,18 +27,27 @@ st.set_page_config(
 
 # dashboard title
 st.title("Life Twitter Tag Dashboard")
+url = "http://localhost:5000"
 
-
-finbert = FinBERT()
-keybert_wrapper = KeyBERTWrapper()
-kfapp = KafkaTwitterApp()
+#finbert = FinBERT()
+#keybert_wrapper = KeyBERTWrapper()
 
 hashtag = st.text_input("Hashtag to follow", "climate")
 
-if st.button('Start Listening'):
-    r = requests.post(url = os.environ["FLASK_API_ENDPOINT"], data = hashtag)
-    st.write(f'Listening successfully for {hashtag}')
+currently_listening = False
 
+if st.button('Start Listening'):
+    currently_listening = True
+    st.write("/".join([url, "set-hashtag"]))
+    r = requests.post(url = "/".join([url, "set-hashtag"]), data = hashtag)
+    st.write(f'Listening successfully for {hashtag}')
+        
+if st.button('Stop Listening'):
+    currently_listening = False
+    r = requests.post(url = "/".join([url,"stop-listening"]))  
+    
+
+kfapp = KafkaTwitterApp()
 kafka_consumer = kfapp.create_consumer()
 kafka_consumer.bootstrap_connected()
 # creating a single-element container
@@ -65,11 +74,14 @@ for message in kafka_consumer:
     contents = utils.decode_message(message.value)
 
     # keyword 
-    top_bigram, keyword_list = keybert_wrapper.predict(contents['data']['text'])
+    r_keyword = requests.get(url = "/".join([url, "get-keywords"]), data = contents['data']['text'].encode('utf-8'))
+    r_keyword = r_keyword.json()
+    top_bigram, keyword_list = r_keyword['top_bigram'], r_keyword['keyword_list'] #keybert_wrapper.predict(contents['data']['text'])
     keyword_q.append(top_bigram)
     # sentiment 
-    finbert_result = finbert.predict(contents['data']['text'])
-    tweet_sentiment = np.mean(finbert_result.sentiment_score)
+    r_sentiment = requests.get(url = "/".join([url, "get-sentiment"]), data = contents['data']['text'].encode('utf-8'))
+    r_sentiment = r_sentiment.json()
+    tweet_sentiment = r_sentiment['tweet_sentiment']
 
     sentiment_q.append(tweet_sentiment)
     sentiment_df = pd.DataFrame(dict(sentiment=sentiment_q,keyword=keyword_q, index=[i for i in range(len(sentiment_q))]))
@@ -150,27 +162,6 @@ for message in kafka_consumer:
     end_time = time.time()
 
 
-       
-                  
-       
-     
-    #time.sleep(5)
-
-
-"""
-# create two columns for charts
-fig_col1, fig_col2 = st.columns(2)
-
-with fig_col1:
-    st.markdown("### First Chart")
-    fig = px.density_heatmap(
-        data_frame=df, y="age_new", x="marital"
-    )
-    st.write(fig)
-   
-with fig_col2:
-    st.markdown("### Second Chart")
-    fig2 = px.histogram(data_frame=df, x="age_new")
-    st.write(fig2)
-"""
-
+    
+            
+    

@@ -40,6 +40,11 @@ class KafkaTwitterApp:
         # create stream
         twitter_api.get_stream(stream_set_rules, topic_name, producer)
 
+    def stop_stream(self):
+        old_rules = twitter_api.get_rules()
+        stream_clean = twitter_api.delete_all_rules(old_rules)
+        return 
+
 def decode_message(msg):
     msg_string =msg.decode('utf-8')
 

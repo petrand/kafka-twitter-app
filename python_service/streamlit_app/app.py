@@ -13,6 +13,7 @@ sys.path.insert(1, './../../')
 
 from python_service.kafka_twitter_app.kafka_twitter_app import KafkaTwitterApp
 import python_service.streamlit_app.utils as utils
+from python_service.nlp_service.finbert import FinBERT
 
 st.set_page_config(
     page_title="Life Twitter Tag Dashboard",
@@ -25,11 +26,11 @@ st.title("Life Twitter Tag Dashboard")
 
 # top-level filters
 #twitter_tag = st.selectbox("Select the Job", ['cat', 'dog', 'banana'])
-twitter_tag = "dog"
+twitter_tag = "tesla"
 rules = [{"value": twitter_tag, "tag": twitter_tag}]
 topic_name = os.environ.get("TOPIC_NAME")
 
-
+finbert = FinBERT()
 kfapp = KafkaTwitterApp()
 
 kafka_consumer = kfapp.create_consumer()
@@ -54,13 +55,17 @@ runn_avg_freshness_old = 0
 runn_avg_tweets_ps_old = 0
 
 for message in kafka_consumer:
-    sentiment_q.append(random.random())
-    sentiment_df = pd.DataFrame(dict(sentiment=sentiment_q,index=[i for i in range(len(sentiment_q))]))
-    #sentiment_df.iloc[0,counter%100] = random.random()
-    #sentiment_arr[counter%100] = random.random()
-    #message.topic, message.value
+
     start_time = time.time()
     contents = utils.decode_message(message.value)
+
+    # sentiment 
+    finbert_result = finbert.predict(contents['data']['text'])
+    tweet_sentiment = np.mean(finbert_result.sentiment_score)
+
+    sentiment_q.append(tweet_sentiment)
+    sentiment_df = pd.DataFrame(dict(sentiment=sentiment_q,index=[i for i in range(len(sentiment_q))]))
+
 
     # freshness
     created_at = contents['data']['created_at']
@@ -68,12 +73,12 @@ for message in kafka_consumer:
     delay = (start_time-end_time)
     sentiment = random.random()
 
-    cumm_sentiment += 0
+    cumm_sentiment += tweet_sentiment
     cumm_freshness += freshness
     cumm_tweets_ps += delay
     
 
-    runn_avg_sentiment = 0 
+    runn_avg_sentiment = round(cumm_sentiment / counter,2)
     runn_avg_freshness = round(cumm_freshness / counter,2)
     runn_avg_tweets_ps = round(cumm_tweets_ps / counter,2)
 
@@ -83,22 +88,17 @@ for message in kafka_consumer:
 
     with placeholder.container():
 
-        
-
-
-        avg_age = 10
-        count_married = 10
 
         kpi1, kpi2, kpi3 = st.columns(3)
         kpi1.metric(
             label="Sentiment",
-            value=round(avg_age),
-            delta=round(avg_age) - 10,
+            value=round(runn_avg_sentiment,1),
+            delta=delta_sentiment,
         )
 
         kpi2.metric(
             label="Tweets/s",
-            value=round(start_time-end_time,1),
+            value=round(runn_avg_tweets_ps,1),
             delta=delta_tweets_ps
         )
 

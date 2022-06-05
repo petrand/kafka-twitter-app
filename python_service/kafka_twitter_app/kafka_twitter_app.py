@@ -45,7 +45,7 @@ class KafkaTwitterApp:
 
 if __name__ == "__main__":
     kfapp = KafkaTwitterApp()
-    twitter_tag = 'cat'
+    twitter_tag = 'tesla'
     rules = [{"value": twitter_tag, "tag": twitter_tag}]
     topic_name = os.environ.get("TOPIC_NAME")
 

@@ -85,7 +85,7 @@ def get_stream(set, topic, kafka_producer):
             print(json_response.keys())
             kafka_producer.send("twitterdata",value = response_line)
             print(json.dumps(json_response, indent=4, sort_keys=True))
-            #time.sleep(5)
+            #time.sleep(3)
 
 ### kafka stuff 
 

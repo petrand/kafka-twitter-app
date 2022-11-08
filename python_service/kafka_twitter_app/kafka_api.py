@@ -2,18 +2,19 @@ from kafka import KafkaProducer
 from kafka import KafkaConsumer
 
 
-def get_kafka_producer(bootstrap_servers=['broker:29029']):
+def get_kafka_producer(bootstrap_servers=['broker:29092']):
     '''
     This function generates a kafka producer that will send data to a topic
 
     Inputs: 
         - bootstrap_servers: list, urls and ports on which the kafka server is running.
-            When running in docker container those will  be the name of service container and its port, e.g. ['broker:29029']
+            When running in docker container those will  be the name of service container and its port, e.g. ['broker:29092']
     Outputs:
         - producer: KafkaProducer, configured instance of kafka producer 
     '''
 
     # setup kafka producer
+    print("Producer BOOTSTRAP SERVERS: ", bootstrap_servers)
     producer = KafkaProducer(bootstrap_servers=bootstrap_servers)
     
     if producer.bootstrap_connected() != True:
@@ -36,6 +37,7 @@ def get_kafka_consumer(bootstrap_servers=['broker:29092'], topics=['twitterdata'
     '''
 
     # setup kafka consumer 
+    print("consumer BOOTSTRAP SERVERS: ", bootstrap_servers, " TOPICS: ", topics)
     consumer = KafkaConsumer(bootstrap_servers=bootstrap_servers)
     consumer.subscribe(topics=topics)
 

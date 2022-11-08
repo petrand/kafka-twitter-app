@@ -17,11 +17,11 @@ class KafkaTwitterApp:
 
 
     def create_producer(self):
-        producer = kafka_api.get_kafka_producer(bootstrap_servers=self.bootstrap_servers)
+        producer = kafka_api.get_kafka_producer()
         return producer
 
     def create_consumer(self, topics=[os.environ.get("TOPIC_NAME")]):
-        consumer = kafka_api.get_kafka_consumer(bootstrap_servers=self.bootstrap_servers, topics=topics)
+        consumer = kafka_api.get_kafka_consumer(topics=topics)
         return consumer
 
     def create_stream(self, rules):

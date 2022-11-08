@@ -10,7 +10,7 @@ services:
       - broker
     ports:
       - "8051:8051"
-      - "5000:5000"
+      - "5001:5001"
     volumes:
       - ./:/usr/work_env/
     env_file:

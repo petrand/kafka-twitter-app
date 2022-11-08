@@ -23,7 +23,7 @@ kfapp = KafkaTwitterApp()
 def set_hashtag():
     hashtag = request.get_data().decode('utf-8')
     print(hashtag)
-
+    hashtag += " lang:en"
     rules = [{"value": hashtag, "tag": hashtag}] 
     topic_name = os.environ.get("TOPIC_NAME")
 
@@ -52,7 +52,8 @@ def get_sentiment():
     text = request.get_data().decode('utf-8')
     finbert_result = finbert.predict(text)
     tweet_sentiment = np.mean(finbert_result.sentiment_score)
-    return {"tweet_sentiment": tweet_sentiment}
+    return {"tweet_sentiment": float(tweet_sentiment)}
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0',debug=False,port='5000')
+    print("app.running")
+    app.run(host='0.0.0.0',debug=False,port='5001')

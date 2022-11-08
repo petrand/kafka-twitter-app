@@ -7,7 +7,6 @@ import numpy as np
 sys.path.insert(1, './../../')
 
 from python_service.kafka_twitter_app.kafka_twitter_app import KafkaTwitterApp
-import python_service.streamlit_app.utils as utils
 from python_service.nlp_service.finbert import FinBERT
 from python_service.nlp_service.keybert_api import KeyBERTWrapper
 

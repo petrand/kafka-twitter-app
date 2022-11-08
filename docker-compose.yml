@@ -1,16 +1,30 @@
 version: '3'
 services:
-  work-env:
+  api:
     tty: true
-    container_name: work_env
+    container_name: api
     build: 
       context: ./
       dockerfile: ./python_service/Dockerfile
     depends_on:
       - broker
     ports:
-      - "8051:8051"
       - "5001:5001"
+    volumes:
+      - ./:/usr/work_env/
+    env_file:
+      - ./python_service/service.env
+
+  streamlitapp:
+    tty: true
+    container_name: streamlitapp
+    build: 
+      context: ./
+      dockerfile: ./python_service/streamlit_app/Dockerfile
+    depends_on:
+      - broker
+    ports:
+      - "8051:8051"
     volumes:
       - ./:/usr/work_env/
     env_file:

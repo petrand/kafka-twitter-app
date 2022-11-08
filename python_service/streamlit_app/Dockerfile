@@ -13,5 +13,5 @@ RUN pip install keybert
 RUN pip install statsmodels
 RUN pip install flask
 RUN pip install flask-restful
-WORKDIR /usr/work_env/python_service/kafka_twitter_app
-CMD ["python3", "app.py"]
+WORKDIR /usr/work_env/python_service/streamlit_app/
+CMD ["streamlit", "run", "streamlit_app.py", "--server.port", "8051"]
